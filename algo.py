@@ -513,8 +513,8 @@ def StoogeSort(arr, start, end):
 
 def runSortingAlgorithms():
 
-    n = 100
-    arr = [random.randint(0, n) for i in range(0, n)]
+    n = 30000
+    arr = [random.randint(0, 100_000) for i in range(0, n)]
 
     with open("algo.json") as file:
         algorithms = json.load(file)
