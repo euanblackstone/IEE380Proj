@@ -3,8 +3,9 @@ import math
 import random
 import csv
 import json
+import multiprocessing
 
-# write methods for all 25 of the sorting algorithms
+# Sorting Algorithms --------------------------------------------------------------------------
 # InsertionSort -------------------------------------------------------------
 def InsertionSort(arr):
     for i in range(1, len(arr)):
@@ -511,27 +512,60 @@ def StoogeSort(arr, start, end):
   
         StoogeSort(arr, start, (end - t))
 
-def runSortingAlgorithms():
+# End of Sorting Algorithms ----------------------------------------------------------------------------
 
-    n = 30000
+def countSortedNumsInArr(arr):
+    count = 0
+    for i in range(len(arr)):
+        if i == 0:
+            if arr[i] <= arr[i+1]:
+                count += 1
+        elif i == len(arr) - 1:
+            if arr[i] >= arr[i-1]:
+                count += 1
+        else:
+            if arr[i] <= arr[i+1] and arr[i] >= arr[i-1]:
+                count += 1
+
+    return count
+
+def sortElementsInTime(n):
+    arr = [random.randint(0, 100_000) for i in range(0, n)]
+
+    p = multiprocessing.Process(target=InsertionSort(arr))
+    p.start()
+
+    p.join(10)
+
+    if p.is_alive():
+        print("kill sort")
+        p.terminate()
+        p.join()
+
+
+def timeSortingAlgorithms(n):
     arr = [random.randint(0, 100_000) for i in range(0, n)]
 
     with open("algo.json") as file:
         algorithms = json.load(file)
 
+    with open("list.csv", "w") as csvFile:
+        writer = csv.writer(csvFile, lineterminator=",\n")
+        for val in array:
+            writer.writerow([val])
 
     #Start Sorting Algorithms --------------------------------------------------------
     array = arr.copy()
     start = timer()
     InsertionSort(array)
     algorithms["InsertionSort"] = timer() - start
-    print("Insertion Sort done")
+    print("Insertion Sort done. %s elements are sorted." % (countSortedNumsInArr(array)))
 
     array = arr.copy()
     start = timer()
     MergeSort(array, 0, len(array) - 1)
     algorithms["MergeSort"] = timer() - start
-    print("Merge Sort done")
+    print("Merge Sort done. %s elements are sorted." % (countSortedNumsInArr(array)))
 
     array = arr.copy()
     start = timer()
@@ -654,11 +688,11 @@ def runSortingAlgorithms():
     algorithms["StoogeSort"] = timer() - start
     print("Stooge Sort done")
 
-    array = arr.copy()
-    start = timer()
-    SlowSort(array, 0, len(array)-1)
-    algorithms["SlowSort"] = timer() - start
-    print("Slow Sort done")
+    # array = arr.copy()
+    # start = timer()
+    # SlowSort(array, 0, len(array)-1)
+    # algorithms["SlowSort"] = timer() - start
+    # print("Slow Sort done")
 
     array = arr.copy()
     start = timer()
@@ -674,13 +708,30 @@ def runSortingAlgorithms():
 
     #Sorting ALgorithms done ----------------------------------------------------
 
-    with open("list.csv", "w") as csvFile:
-        writer = csv.writer(csvFile, lineterminator=",\n")
-        for val in arr:
-            writer.writerow([val])
 
     with open("algo.json", "w") as file:
         json.dump(algorithms, file, indent=2)
 
 
-runSortingAlgorithms()
+#sortElementsInTime(100_000)
+
+if __name__ == '__main__':
+
+    arr = [random.randint(0, 100_000) for i in range(0, 10000)]
+
+    p = multiprocessing.Process(target=InsertionSort, args=(arr,))
+    p.start()
+
+    p.join(10)
+
+    if p.is_alive():
+        print("kill sort")
+        p.terminate()
+        p.join()
+
+    with open("test.csv", "w") as csvFile:
+        writer = csv.writer(csvFile, lineterminator=",\n")
+        for val in arr:
+            writer.writerow([val])
+
+    print(countSortedNumsInArr(arr))
