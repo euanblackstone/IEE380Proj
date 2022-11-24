@@ -3,7 +3,10 @@ import math
 import random
 import csv
 import json
-import multiprocessing
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import sys
 
 # Sorting Algorithms --------------------------------------------------------------------------
 # InsertionSort -------------------------------------------------------------
@@ -19,6 +22,55 @@ def InsertionSort(arr):
             j -= 1
         arr[j + 1] = key
         arrayWrites += 1
+
+
+#RecursiveInsertionSort ------------------------------------------------------
+def RecursiveInsertionSort(arr, i, length):
+    global arrayWrites
+
+    value = arr[i]
+    j = i
+
+    while(j > 0 and arr[j - 1] > value):
+        arr[j] = arr[j - 1]
+        arrayWrites += 1
+        j = j - 1
+
+    arr[j] = value
+    arrayWrites += 1
+
+    if i + 1 <= length:
+        RecursiveInsertionSort(arr, i + 1, length)
+
+
+#BinaryInsertionSort -------------------------------------------------------
+def BinaryInsertionSort(arr, length):
+    global arrayWrites
+
+    for i in range(length):
+        j = i - 1
+        selected = arr[i]
+
+        index = binarySearch(arr, selected, 0, j)
+
+        while (j >= index):
+            arr[j+1] = arr[j]
+            arrayWrites += 1
+            j = j - 1
+
+        arr[j + 1] = selected
+        arrayWrites += 1
+            
+def binarySearch(arr, data, start, end):
+    while(start <= end):
+        middle = math.floor(start + (end - start) / 2)
+        if (data == arr[middle]):
+            return middle + 1
+        elif (data > arr[middle]):
+            start = middle + 1
+        else:
+            end = middle - 1
+    return start
 
 
 # MergeSort -----------------------------------------------------------------
@@ -77,6 +129,21 @@ def merge(arr, left, middle, right):
         k += 1
 
 
+def IterativeMergeSort(arr):
+    width = 1   
+    length = len(arr)                                         
+    
+    while (width < length):
+        l=0;
+        while (l < length):
+            r = min(l+(width*2-1), length-1)        
+            m = min(l+width-1,length-1)
+                      
+            merge(arr, l, m, r)
+            l += width*2
+        width *= 2
+
+
 # SelectionSort -------------------------------------------------------
 def SelectionSort(arr):
     global arrayWrites
@@ -112,6 +179,46 @@ def partition(arr, start, end):
     (arr[i + 1], arr[end]) = (arr[end], arr[i + 1])
     arrayWrites += 2
     return i + 1
+
+def IterativeQuickSort(arr, l, h):
+    global arrayWrites
+
+    size = h - l + 1
+    stack = [0] * (size)
+    arrayWrites += 1
+ 
+    top = -1
+ 
+    top = top + 1
+    stack[top] = l
+    top = top + 1
+    stack[top] = h
+    arrayWrites += 2
+ 
+    while top >= 0:
+ 
+        h = stack[top]
+        top = top - 1
+        l = stack[top]
+        top = top - 1
+        arrayWrites += 2
+ 
+    
+        p = partition(arr, l, h )
+ 
+        if p-1 > l:
+            top = top + 1
+            stack[top] = l
+            top = top + 1
+            stack[top] = p - 1
+            arrayWrites += 2
+ 
+        if p + 1 < h:
+            top = top + 1
+            stack[top] = p + 1
+            top = top + 1
+            stack[top] = h
+            arrayWrites += 2
 
 
 # GnomeSort ------------------------------------------------------------
@@ -164,18 +271,33 @@ def heapify(arr, length, i):
 
 
 
-# BogoSort ------------------------------------------------------------
-#pseudocode from wikipedia page for bogosort
-def is_sorted(data) -> bool:
-    return all(a <= b for a, b in zip(data, data[1:]))
+# PancakeSort ------------------------------------------------------------
+def PancakeSort(arr):
+    length = len(arr)
+    while length > 1:
+        maximum = findMax(arr, length)
+        if maximum != length-1:
+            flip(arr, maximum)
+            flip(arr, length-1)
+        length -= 1
 
-def BogoSort(data):
+def flip(arr, i):
     global arrayWrites
 
-    while not is_sorted(data):
-        random.shuffle(data)
-        arrayWrites += 1
+    start = 0
+    while start < i:
+        (arr[start], arr[i]) = (arr[i], arr[start])
+        arrayWrites += 2
+        start += 1
+        i -= 1
 
+def findMax(arr, n):
+    maximum = 0
+    for i in range(0,n):
+        if arr[i] > arr[maximum]:
+            maximum = i
+    return maximum     
+  
 
 # ShellSort ----------------------------------------------------------
 def ShellSort(arr):
@@ -618,6 +740,28 @@ def StoogeSort(arr, start, end):
   
         StoogeSort(arr, start, (end - t))
 
+def RecursiveBubbleSort(arr, length):
+    global arrayWrites
+    # count = 0
+
+    # if length == 1:
+    #     return
+    
+    for i in range(length - 1):
+        if arr[i] > arr[i+1]:
+            (arr[i], arr[i+1]) = (arr[i+1], arr[i])
+            arrayWrites += 2
+            #count += 1
+
+    # if count == 0:
+    #     return
+
+    if length - 1 > 1:
+        RecursiveBubbleSort(arr, length - 1)
+    
+    
+
+
 # End of Sorting Algorithms ----------------------------------------------------------------------------
 
 def countSortedNumsInArr(arr):
@@ -635,33 +779,17 @@ def countSortedNumsInArr(arr):
 
     return count
 
-def sortElementsInTime(n):
-    arr = [random.randint(0, 100_000) for i in range(0, n)]
-
-    p = multiprocessing.Process(target=InsertionSort(arr))
-    p.start()
-
-    p.join(10)
-
-    if p.is_alive():
-        print("kill sort")
-        p.terminate()
-        p.join()
-
 
 def timeSortingAlgorithms(n):
     global arrayWrites
 
     arr = [random.randint(0, 100_000) for i in range(0, n)]
-    arrayWritesList = {}
 
     with open("algo.json") as file:
         algorithms = json.load(file)
 
-    with open("list.csv", "w") as csvFile:
-        writer = csv.writer(csvFile, lineterminator=",\n")
-        for val in arr:
-            writer.writerow([val])
+    with open("accesses.json") as file:
+        arrayWritesList = json.load(file)
 
 
     #Start Sorting Algorithms --------------------------------------------------------
@@ -712,14 +840,6 @@ def timeSortingAlgorithms(n):
     algorithms["HeapSort"] = timer() - start
     arrayWritesList["HeapSort"] = arrayWrites
     print("Heap Sort done. %s array writes occurred." % (arrayWrites))
-
-    # array = arr.copy()
-    arrayWrites = 0
-    # start = timer()
-    # BogoSort(array)
-    # algorithms["BogoSort"] = timer() - start
-    arrayWritesList["BogoSort"] = arrayWrites
-    print("Bogo Sort done. %s array writes occurred." % (arrayWrites))
 
     array = arr.copy()
     arrayWrites = 0
@@ -828,30 +948,6 @@ def timeSortingAlgorithms(n):
     array = arr.copy()
     arrayWrites = 0
     start = timer()
-    StoogeSort(array, 0, len(array) - 1)
-    algorithms["StoogeSort"] = timer() - start
-    arrayWritesList["StoogeSort"] = arrayWrites
-    print("Stooge Sort done. %s array writes occurred." % (arrayWrites))
-
-    # array = arr.copy()
-    arrayWrites = 0
-    # start = timer()
-    # SlowSort(array, 0, len(array)-1)
-    # algorithms["SlowSort"] = timer() - start
-    arrayWritesList["SlowSort"] = arrayWrites
-    print("Slow Sort done. %s array writes occurred." % (arrayWrites))
-
-    array = arr.copy()
-    arrayWrites = 0
-    start = timer()
-    StupidSort(array)
-    algorithms["StupidSort"] = timer() - start
-    arrayWritesList["StupidSort"] = arrayWrites
-    print("Stupid Sort done. %s array writes occurred." % (arrayWrites))
-
-    array = arr.copy()
-    arrayWrites = 0
-    start = timer()
     TimSort(array)
     algorithms["TimSort"] = timer() - start
     arrayWritesList["TimSort"] = arrayWrites
@@ -868,7 +964,61 @@ def timeSortingAlgorithms(n):
     arrayWritesList["Python's Sort"] = arrayWrites
     print("Python's Built-in Sort done. %s array writes occurred." % (arrayWrites))
 
-    #Sorting ALgorithms done ----------------------------------------------------
+    array = arr.copy()
+    arrayWrites = 0
+    start = timer()
+    PancakeSort(array)
+    algorithms["PancakeSort"] = timer() - start
+    arrayWritesList["PancakeSort"] = arrayWrites
+    print("Pancake Sort done. %s array writes occurred." % (arrayWrites))
+
+    # array = arr.copy()
+    # arrayWrites = 0
+    # start = timer()
+    # RecursiveBubbleSort(array, len(array))
+    # algorithms["RecursiveBubbleSort"] = timer() - start
+    # arrayWritesList["RecursiveBubbleSort"] = arrayWrites
+    # print("Recursive Bubble Sort done. %s array writes occurred." % (arrayWrites))
+
+    # array = arr.copy()
+    # arrayWrites = 0
+    # start = timer()
+    # RecursiveInsertionSort(array, len(array))
+    # algorithms["RecursiveInsertionSort"] = timer() - start
+    # arrayWritesList["RecursiveInsertionSort"] = arrayWrites
+    # print("Recursive Insertion Sort done. %s array writes occurred." % (arrayWrites))
+
+    array = arr.copy()
+    arrayWrites = 0
+    start = timer()
+    PancakeSort(array)
+    algorithms["IterativeMergeSort"] = timer() - start
+    arrayWritesList["IterativeMergeSort"] = arrayWrites
+    print("Iterative Merge Sort done. %s array writes occurred." % (arrayWrites))
+
+    array = arr.copy()
+    arrayWrites = 0
+    start = timer()
+    PancakeSort(array)
+    algorithms["IterativeQuickSort"] = timer() - start
+    arrayWritesList["IterativeQuickSort"] = arrayWrites
+    print("Iterative Quick Sort done. %s array writes occurred." % (arrayWrites))
+
+    array = arr.copy()
+    arrayWrites = 0
+    start = timer()
+    BinaryInsertionSort(array, len(array))
+    algorithms["BinaryInsertionSort"] = timer() - start
+    arrayWritesList["BinaryInsertionSort"] = arrayWrites
+    print("Binary Insertion Sort done. %s array writes occurred." % (arrayWrites))
+
+    #Sorting Algorithms done ----------------------------------------------------
+
+    with open("list.csv", "w") as csvFile:
+        writer = csv.writer(csvFile, lineterminator=",\n")
+        for val in arr:
+            writer.writerow([val])
+    
 
 
     with open("algo.json", "w") as file:
@@ -878,28 +1028,30 @@ def timeSortingAlgorithms(n):
         json.dump(arrayWritesList, file, indent=2)
 
 
-#sortElementsInTime(100_000)
+def constructHistograms(file):
+    with open(file) as file:
+        algorithms = json.load(file)
+
+    plt.hist(algorithms)
+    plt.show()
+
+def testIndividualAlgo(n):
+    global arrayWrites
+    # sys.setrecursionlimit(21000)
+
+    arr = [random.randint(0, 100_000) for i in range(0, n)]
+
+    IterativeQuickSort(arr, 0, len(arr)-1)
+
+    with open("test.csv", "w") as csvFile:
+        writer = csv.writer(csvFile, lineterminator=",\n")
+        for val in arr:
+            writer.writerow([val])
 
 if __name__ == '__main__':
-
-    # arr = [random.randint(0, 100_000) for i in range(0, 10000)]
-
-    # p = multiprocessing.Process(target=InsertionSort, args=(arr,))
-    # p.start()
-
-    # p.join(10)
-
-    # if p.is_alive():
-    #     print("kill sort")
-    #     p.terminate()
-    #     p.join()
-
-    # with open("test.csv", "w") as csvFile:
-    #     writer = csv.writer(csvFile, lineterminator=",\n")
-    #     for val in arr:
-    #         writer.writerow([val])
-
-    # print(countSortedNumsInArr(arr))
     arrayWrites = 0
 
-    timeSortingAlgorithms(1000)
+    timeSortingAlgorithms(20000)
+    #testIndividualAlgo(20000)
+
+    #constructHistograms("accesses.json")
