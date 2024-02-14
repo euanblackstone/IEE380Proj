@@ -73,14 +73,14 @@ The time to sort for all algorithms is shown in the table below:
 
 ## **Histogram, Sample Mean, Sample Standard Deviation**
 
-A histogram of the discrete data is shown below: 
-![localImage](./images/histogram.png)  
+A histogram of the discrete data is shown below:  
+<img src='https://raw.githubusercontent.com/euanblackstone/IEE380Proj/f5579420ab5e6ac65b61a31b81101270c15e1c6b/images/histogram.png'></img>  
 The sample mean and standard deviation are shown below:  
 $\overline{x}=87,004,252.26$  
 $s=108,862,874.2$
 
-A histogram of the continuous data is shown below:
-![localImage](./images/continuous_histogram.png)  
+A histogram of the continuous data is shown below:  
+<img src='https://raw.githubusercontent.com/euanblackstone/IEE380Proj/main/images/continuous_histogram.png'></img>  
 The sample mean and standard deviation are shown below:  
 $\overline{x}=10.748\ seconds$  
 $s=13.016\ seconds$
